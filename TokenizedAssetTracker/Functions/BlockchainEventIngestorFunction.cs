@@ -16,12 +16,12 @@ public class BlockchainEventIngestorFunction(
     private readonly ILogger<BlockchainEventIngestorFunction> _logger = logger;
     private readonly IEventPublisherService _eventPublisherService = eventPublisherService;
 
-    [Function("BlockchainEventIngestorFunction")]
+    [Function(nameof(BlockchainEventIngestorFunction))]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
     {
         var eventDataModel = await req.ReadFromJsonAsync<BlockchainEventModel>();
 
-        if (eventDataModel!.AssetId == Guid.Empty)
+        if (string.IsNullOrEmpty(eventDataModel!.AssetId))
         {
             return new BadRequestObjectResult("AssetId is required");
         }

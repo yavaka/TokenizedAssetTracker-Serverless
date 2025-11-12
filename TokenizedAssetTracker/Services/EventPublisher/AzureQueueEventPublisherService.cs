@@ -5,7 +5,7 @@ using TokenizedAssetTracker.Models;
 
 namespace TokenizedAssetTracker.Services.EventPublisher;
 
-internal class AzureQueueEventPublisherService(
+public class AzureQueueEventPublisherService(
     ILogger<AzureQueueEventPublisherService> logger,
     QueueServiceClient queueServiceClient) : IEventPublisherService
 {
