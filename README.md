@@ -40,7 +40,7 @@ The system is decoupled into two primary components to ensure fast ingestion and
 1.  Clone the repository:
     ```bash
     git clone [YOUR_REPO_URL]
-    cd Tokenized-Asset-Tracker-Serverless
+    cd TokenizedAssetTracker-Serverless
     ```
 2.  Start the Azure Functions host from the root directory:
     ```bash
