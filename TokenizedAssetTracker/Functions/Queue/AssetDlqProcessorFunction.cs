@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using TokenizedAssetTracker.Models;
 using TokenizedAssetTracker.Services.DlqHandling;
 
-namespace TokenizedAssetTracker.Functions;
+namespace TokenizedAssetTracker.Functions.Queue;
 
 public class AssetDlqProcessorFunction(
     ILogger<AssetDlqProcessorFunction> logger,
@@ -18,17 +18,17 @@ public class AssetDlqProcessorFunction(
     {
         try
         {
-            this._logger.LogWarning("Processing message from dead-letter queue for Asset ID: {AssetId}", eventData.AssetId);
+            _logger.LogWarning("Processing message from dead-letter queue for Asset ID: {AssetId}", eventData.AssetId);
 
-            await this._dlqHandlingService.ArchivePoisonedBlockchainEventAsync(eventData);
+            await _dlqHandlingService.ArchivePoisonedBlockchainEventAsync(eventData);
 
-            await this._dlqHandlingService.SendFailureAlertAsync(eventData);
+            await _dlqHandlingService.SendFailureAlertAsync(eventData);
 
-            this._logger.LogInformation("DLQ message successfully archived and reported for Asset ID: {AssetId}. Message deleted from DLQ.", eventData.AssetId);
+            _logger.LogInformation("DLQ message successfully archived and reported for Asset ID: {AssetId}. Message deleted from DLQ.", eventData.AssetId);
         }
         catch (Exception e)
         {
-            this._logger.LogCritical(
+            _logger.LogCritical(
                 e, 
                 "CRITICAL: Failed to archive or alert on DLQ message for Asset ID: {AssetId}. The message will REMAIN in the poison queue.",
                 eventData?.AssetId);

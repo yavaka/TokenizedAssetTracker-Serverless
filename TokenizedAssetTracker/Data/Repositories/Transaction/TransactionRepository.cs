@@ -25,7 +25,7 @@ internal class TransactionRepository(
         var itemResponse = await container.CreateItemAsync(model, new PartitionKey(model.AssetId));
 
         // Log key details from the Cosmos DB response for diagnostics
-        _logger.LogInformation(
+        this._logger.LogInformation(
             "Saved item to Cosmos DB. Id: {Id}, Container: {Container}, StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}, ETag: {ETag}",
             model.Id,
             this._cosmoDbOptions.TxContainerName,

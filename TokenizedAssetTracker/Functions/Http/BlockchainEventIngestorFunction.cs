@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using TokenizedAssetTracker.Models;
 using TokenizedAssetTracker.Services.EventPublisher;
 
-namespace TokenizedAssetTracker.Functions;
+namespace TokenizedAssetTracker.Functions.Http;
 
 public class BlockchainEventIngestorFunction(
     ILogger<BlockchainEventIngestorFunction> logger,
@@ -25,7 +25,7 @@ public class BlockchainEventIngestorFunction(
             return new BadRequestObjectResult("AssetId is required");
         }
 
-        var result = await this._eventPublisherService.PublishEventAsync(eventDataModel);
+        var result = await _eventPublisherService.PublishEventAsync(eventDataModel);
 
         _logger.LogInformation("Blockchain Event Ingestor function processed a request.");
         return new AcceptedResult("blockchain-events-queue", result);

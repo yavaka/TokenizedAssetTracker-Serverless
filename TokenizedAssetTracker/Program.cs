@@ -1,6 +1,7 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +28,7 @@ builder.Services
             builder.Configuration["AzureWebJobsStorage"]
         );
     });
+builder.Services.AddDurableTaskClient(builder => builder.UseGrpc());
 
 builder.Services.Configure<CosmosDbOptions>(builder.Configuration.GetSection(CosmosDbOptions.CosmosDb));
 

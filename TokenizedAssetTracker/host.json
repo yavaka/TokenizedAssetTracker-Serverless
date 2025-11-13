@@ -13,6 +13,12 @@
     "queues": {
       "maxDequeueCount": 5,
       "messageEncoding": "none"
+    },
+    "durableTask": {
+      "tracing": {
+        "distributedTracingEnabled": true,
+        "version": "V2"
+      }
     }
   }
 }

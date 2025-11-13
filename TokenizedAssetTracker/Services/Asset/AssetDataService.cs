@@ -14,15 +14,15 @@ public class AssetDataService(
     public async Task ProcessAssetTransferAsync(BlockchainEventModel eventData)
     {
         // Log a message indicating the start of the heavy workload
-        _logger.LogInformation("Starting complex ledger update for Asset ID: {AssetId}", eventData.AssetId);
+        this._logger.LogInformation("Starting complex ledger update for Asset ID: {AssetId}", eventData.AssetId);
 
-        await _transactionRepository.SaveAsync(eventData);
+        await this._transactionRepository.SaveAsync(eventData);
 
         // Simulate a heavy workload with a delay
         await Task.Delay(5000);
-       
+
 
         // Log a message indicating the completion of the heavy workload
-        _logger.LogWarning("Asset ID: {AssetId} successfully processed. New owner: {NewOwnerAddress}", eventData.AssetId, eventData.NewOwnerAddress);
+        this._logger.LogWarning("Asset ID: {AssetId} successfully processed. New owner: {NewOwnerAddress}", eventData.AssetId, eventData.NewOwnerAddress);
     }
 }
