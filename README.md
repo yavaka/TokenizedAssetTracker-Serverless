@@ -1,27 +1,35 @@
 # 💻 Tokenized Asset Tracker (Serverless)
 
-This project simulates a highly scalable, event-driven system for tracking and processing tokenized asset transfers originating from a blockchain (or similar external event source). It uses a clean **Producer-Consumer architecture** implemented entirely on Azure Functions (Isolated Worker Model) for optimal performance and resilience.
+This project simulates a highly scalable, event-driven system for tracking and processing tokenized asset transfers originating from a blockchain (or similar external event source). It uses a clean **Producer-Consumer architecture** implemented entirely on Azure Functions (Isolated Worker Model) for optimal performance and resilience. 
+
+---
 
 ## 🚀 Architecture Overview 🧱
 
-The system is decoupled into two primary components to ensure fast ingestion and resilient processing. 
+The system is decoupled into three primary components to ensure fast ingestion, resilient processing, and reliable failure handling.
 
 | Component | Role | Azure Function Type |
 | :--- | :--- | :--- |
 | **Producer (BlockchainEventIngestor)** | Receives blockchain event notifications via a public HTTP endpoint. It validates the input and immediately queues the event to guarantee fast acknowledgment and queue-based reliability. | HTTP Trigger |
-| **Consumer (AssetDataProcessor)** | Asynchronously pulls events from the queue and performs complex, time-consuming business logic, including persisting the final transaction state to a Cosmos DB ledger via a dedicated repository service. | Queue Trigger |
+| **Consumer (AssetDataProcessor)** | Asynchronously pulls events from the primary queue. It performs complex, time-consuming business logic, including persisting the final transaction state to a Cosmos DB ledger via a dedicated repository service. | Queue Trigger |
+| **DLQ Handler (AssetDlqProcessorFunction)** | Listens to the **Dead Letter Queue (`blockchain-events-queue-poison`)**. Its role is **diagnostic and archival**, not reprocessing. It saves failed payloads to permanent storage and sends alerts for manual operator review. | Queue Trigger |
+
+---
 
 ## 🛠️ Tech Stack & Concepts Demonstrated
 
 | Component | Technology | Concept Demonstrated |
 | :--- | :--- | :--- |
-| **Runtime** | C# / .NET 9.0 | Azure Functions (Isolated Worker Model) |
+| **Runtime** | C# / .NET 9.0 | Azure Functions (**Isolated Worker Model**) |
 | **Ingestion** | HTTP Trigger | Public API endpoint for receiving POST data |
 | **Messaging** | Azure Storage Queue SDK | Output Binding / Queue Client for decoupling and reliability |
+| **Resilience** | Dead Letter Queue (DLQ) & `IDlqHandlingService` | Archival of failed messages to prevent data loss, separation of recovery logic. |
 | **Persistence** | Azure Cosmos DB | NoSQL Persistence Layer using the official `Microsoft.Azure.Cosmos` Client |
 | **Configuration** | `IOptions<T>` Pattern | Strongly-typed, externalized configuration management (DB/Container names) |
 | **Startup Logic** | `ICosmosDbProvisioner` | Automated infrastructure provisioning on host startup (`CreateIfNotExistsAsync`) |
 | **Code Quality** | Dependency Injection (DI) | Clean separation of concerns (SRP) for services and repository layers |
+
+---
 
 ## ⚙️ Getting Started
 
@@ -51,7 +59,8 @@ You must configure your local settings for Azure Storage and Cosmos DB.
   },
   "CosmosDbSettings": { 
     "DatabaseName": "AssetTrackerDb",
-    "ContainerName": "transactions"
+    "CosmosDbSettings:TxContainerName": "transactions",
+    "CosmosDbSettings:FailedTxContainerName": "failed-transactions"
   }
 }
 ```
@@ -102,13 +111,18 @@ HTTP Ingestion → Queue Message → Cosmos DB Persistence
 
 ## ✅ Verification Steps
 
-1. **Check Console Log:**  
-   The log should display that `AssetDataProcessorFunction` successfully processed and persisted the data.  
-   Example output:  
-   `Asset ID: ... successfully processed and persisted.`
+1. **Check Console Log (Success)**
+The log should display that `AssetDataProcessorFunction` successfully processed and persisted the data.  
+Example output:  
+`Asset ID: ... successfully processed and persisted.`
 
-2. **Check Cosmos DB:**  
-   Use either Azure Portal or Azure Storage Explorer to confirm a new JSON document in the `AssetTrackerDb/transactions` container, matching the `AssetId` and `TxHash` from your request.
+2. **Check Console Log (Failure/DLQ)**
+To test the DLQ scenario, send a message known to fail processing (for example, a specific test ID configured to throw a permanent exception).  
+The console will show the main consumer failing 5 times.  
+The `AssetDlqProcessorFunction` will then trigger and log that the message was archived and reported.
+
+3. **Check Cosmos DB**
+Use either Azure Portal or Azure Storage Explorer to confirm a new JSON document exists in the `AssetTrackerDb/transactions` container, matching the `AssetId` and `TxHash` from your successful request.
 
 ---
 
