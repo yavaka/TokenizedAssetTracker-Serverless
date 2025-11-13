@@ -6,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TokenizedAssetTracker.Configurations.Options;
 using TokenizedAssetTracker.Data.DbInitializer;
+using TokenizedAssetTracker.Data.Repositories.FailedTransaction;
 using TokenizedAssetTracker.Data.Repositories.Transaction;
 using TokenizedAssetTracker.Services.Asset;
+using TokenizedAssetTracker.Services.DlqHandling;
 using TokenizedAssetTracker.Services.EventPublisher;
 
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -31,11 +33,13 @@ builder.Services.Configure<CosmosDbOptions>(builder.Configuration.GetSection(Cos
 builder.Services
     .AddSingleton(new CosmosClient(builder.Configuration["CosmosDbConnectionString"]))
     .AddSingleton<ICosmosDbProvisioner, CosmosDbProvisioner>()
-    .AddSingleton<ITransactionRepository, TransactionRepository>();
+    .AddSingleton<ITransactionRepository, TransactionRepository>()
+    .AddSingleton<IFailedTransactionRepository, FailedTransactionRepository>();
 
 builder.Services
     .AddSingleton<IAssetService, AssetDataService>()
-    .AddSingleton<IEventPublisherService, AzureQueueEventPublisherService>();
+    .AddSingleton<IEventPublisherService, AzureQueueEventPublisherService>()
+    .AddSingleton<IDlqHandlingService, DlqHandlingService>();
 
 var host = builder.Build();
 

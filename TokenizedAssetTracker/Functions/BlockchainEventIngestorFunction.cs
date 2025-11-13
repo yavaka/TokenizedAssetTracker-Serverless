@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using TokenizedAssetTracker.Models;
 using TokenizedAssetTracker.Services.EventPublisher;
 

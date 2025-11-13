@@ -16,7 +16,7 @@ public class AssetDataService(
         // Log a message indicating the start of the heavy workload
         _logger.LogInformation("Starting complex ledger update for Asset ID: {AssetId}", eventData.AssetId);
 
-        await _transactionRepository.SaveTransactionAsync(eventData);
+        await _transactionRepository.SaveAsync(eventData);
 
         // Simulate a heavy workload with a delay
         await Task.Delay(5000);

@@ -16,7 +16,7 @@ internal class CosmosDbProvisioner(
 
     public async Task EnsureDbAndContainerCreatedAsync()
     {
-        var dbResponse = await this._cosmosClient.CreateDatabaseIfNotExistsAsync(this._cosmosDbOptions.DatabaseName);
+        var dbResponse = await InitDbAsync();
 
         this._logger.LogInformation(
             "Ensure database '{DatabaseName}' - StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}",
@@ -25,22 +25,49 @@ internal class CosmosDbProvisioner(
             dbResponse.ActivityId,
             dbResponse.RequestCharge);
 
-        var containerResponse = await this._cosmosClient
-            .GetDatabase(this._cosmosDbOptions.DatabaseName)
-            .CreateContainerIfNotExistsAsync(
-                new ContainerProperties
-                {
-                    Id = this._cosmosDbOptions.ContainerName,
-                    PartitionKeyPath = "/AssetId"
-                });
+        var containerResponse = await InitTxContainerAsync();
 
         this._logger.LogInformation(
             "Ensure container '{ContainerName}' in database '{DatabaseName}' - StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}, PartitionKeyPath: {PartitionKeyPath}",
-            this._cosmosDbOptions.ContainerName,
+            this._cosmosDbOptions.TxContainerName,
+            this._cosmosDbOptions.DatabaseName,
+            containerResponse.StatusCode,
+            containerResponse.ActivityId,
+            containerResponse.RequestCharge,
+            containerResponse.Resource?.PartitionKeyPath);
+        
+        containerResponse = await InitFailedTxContainerAsync(containerResponse);
+
+        this._logger.LogInformation(
+            "Ensure container '{ContainerName}' in database '{DatabaseName}' - StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}, PartitionKeyPath: {PartitionKeyPath}",
+            this._cosmosDbOptions.TxContainerName,
             this._cosmosDbOptions.DatabaseName,
             containerResponse.StatusCode,
             containerResponse.ActivityId,
             containerResponse.RequestCharge,
             containerResponse.Resource?.PartitionKeyPath);
     }
+
+    private async Task<ContainerResponse> InitFailedTxContainerAsync(ContainerResponse containerResponse) 
+        => await this._cosmosClient
+            .GetDatabase(this._cosmosDbOptions.DatabaseName)
+            .CreateContainerIfNotExistsAsync(
+                new ContainerProperties
+                {
+                    Id = this._cosmosDbOptions.FailedTxContainerName,
+                    PartitionKeyPath = "/AssetId"
+                });
+
+    private async Task<ContainerResponse> InitTxContainerAsync() 
+        => await this._cosmosClient
+            .GetDatabase(this._cosmosDbOptions.DatabaseName)
+            .CreateContainerIfNotExistsAsync(
+                new ContainerProperties
+                {
+                    Id = this._cosmosDbOptions.TxContainerName,
+                    PartitionKeyPath = "/AssetId"
+                });
+
+    private async Task<DatabaseResponse> InitDbAsync() 
+        => await this._cosmosClient.CreateDatabaseIfNotExistsAsync(this._cosmosDbOptions.DatabaseName);
 }

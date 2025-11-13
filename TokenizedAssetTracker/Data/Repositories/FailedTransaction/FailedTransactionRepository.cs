@@ -4,14 +4,14 @@ using Microsoft.Extensions.Options;
 using TokenizedAssetTracker.Configurations.Options;
 using TokenizedAssetTracker.Models;
 
-namespace TokenizedAssetTracker.Data.Repositories.Transaction;
+namespace TokenizedAssetTracker.Data.Repositories.FailedTransaction;
 
-internal class TransactionRepository(
-    ILogger<TransactionRepository> logger,
+internal class FailedTransactionRepository(
+    ILogger<FailedTransactionRepository> logger,
     IOptions<CosmosDbOptions> cosmoDbOptions,
-    CosmosClient cosmosClient) : ITransactionRepository
+    CosmosClient cosmosClient) : IFailedTransactionRepository
 {
-    private readonly ILogger<TransactionRepository> _logger = logger;
+    private readonly ILogger<FailedTransactionRepository> _logger = logger;
     private readonly CosmosDbOptions _cosmoDbOptions = cosmoDbOptions.Value;
     private readonly CosmosClient _cosmosClient = cosmosClient;
 
@@ -20,13 +20,13 @@ internal class TransactionRepository(
         ArgumentNullException.ThrowIfNull(model);
 
         var container = this._cosmosClient
-            .GetContainer(this._cosmoDbOptions.DatabaseName, this._cosmoDbOptions.TxContainerName);
+            .GetContainer(this._cosmoDbOptions.DatabaseName, this._cosmoDbOptions.FailedTxContainerName);
 
         var itemResponse = await container.CreateItemAsync(model, new PartitionKey(model.AssetId));
 
         // Log key details from the Cosmos DB response for diagnostics
         _logger.LogInformation(
-            "Saved item to Cosmos DB. Id: {Id}, Container: {Container}, StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}, ETag: {ETag}",
+            "Saved failed TX to Cosmos DB. Id: {Id}, Container: {Container}, StatusCode: {StatusCode}, ActivityId: {ActivityId}, RequestCharge: {RequestCharge}, ETag: {ETag}",
             model.Id,
             this._cosmoDbOptions.TxContainerName,
             itemResponse.StatusCode,

@@ -4,5 +4,5 @@ namespace TokenizedAssetTracker.Data.Repositories.Transaction;
 
 public interface ITransactionRepository
 {
-    Task SaveTransactionAsync(BlockchainEventModel model);
+    Task SaveAsync(BlockchainEventModel model);
 }

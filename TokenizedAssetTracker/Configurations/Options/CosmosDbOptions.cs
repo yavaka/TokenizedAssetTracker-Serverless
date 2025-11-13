@@ -7,5 +7,6 @@ public class CosmosDbOptions
 
     // These property names must match the keys inside the "CosmosDbSettings" section in your configuration.
     public string DatabaseName { get; set; } = string.Empty;
-    public string ContainerName { get; set; } = string.Empty;
+    public string TxContainerName { get; set; } = string.Empty;
+    public string FailedTxContainerName { get; set; } = string.Empty;
 }
